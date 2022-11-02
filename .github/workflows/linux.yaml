@@ -1,0 +1,72 @@
+name: linux build
+
+on: workflow_dispatch
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: fix ubuntu
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+          packages: gcc-multilib g++-multilib
+          version: 1.0
+
+    - name: cache sdk
+      id: cache-sdk
+      uses: actions/cache@v3
+      with:
+        path: sdk
+        key: i-cant-be-bothered-for-now
+    - uses: actions/checkout@v3
+      if: steps.cache-sdk.outputs.cache-hit != 'true'
+      with:
+        path: 'sdk'
+        repository: 'ValveSoftware/source-sdk-2013'
+
+    - name: cache lua
+      id: cache-lua
+      uses: actions/cache@v3
+      with:
+        path: lua-5.4.4
+        key: now-this-is-lua
+    # - uses: suisei-cn/actions-download-file@v1.0.1
+    #   if: steps.cache-lua.outputs.cache-hit != 'true'
+    #   with:
+    #     filename: lua-5.4.4.tar.gz
+    #     url: 'https://www.lua.org/ftp/lua-5.4.4.tar.gz'
+    #     target: $GITHUB_WORKSPACE/
+    - name: download lua
+      id: download-lua
+      if: steps.cache-lua.outputs.cache-hit != 'true'
+      run: curl https://www.lua.org/ftp/lua-5.4.4.tar.gz -o $GITHUB_WORKSPACE/lua-5.4.4.tar.gz
+    - name: unpack lua
+      id: unpack-lua
+      if: steps.cache-lua.outputs.cache-hit != 'true'
+      run: tar xvf $GITHUB_WORKSPACE/lua-5.4.4.tar.gz --directory $GITHUB_WORKSPACE
+
+    - name: copy lua
+      run: cp -r $GITHUB_WORKSPACE/lua-5.4.4/src $GITHUB_WORKSPACE/sdk/sp/src/utils/serverplugin_sample/lua
+    - name: build lua
+      run: cd $GITHUB_WORKSPACE/lua-5.4.4; make MYCFLAGS="-m32" MYLDFLAGS="-m32"
+    - name: copy lua lib
+      run: cp $GITHUB_WORKSPACE/lua-5.4.4/src/liblua.a $GITHUB_WORKSPACE/sdk/sp/src/lib/public/linux32/
+
+    - name: move
+      run: cp $GITHUB_WORKSPACE/*.cpp $GITHUB_WORKSPACE/*.h $GITHUB_WORKSPACE/*.vpc $GITHUB_WORKSPACE/sdk/sp/src/utils/serverplugin_sample/
+    
+    - name: patch sdk
+      if: steps.cache-lua.outputs.cache-hit != 'true'
+      run: cd $GITHUB_WORKSPACE/sdk/; git apply --whitespace=fix --ignore-space-change --ignore-whitespace "$GITHUB_WORKSPACE/sdk patches"
+    - name: prepare sdk
+      run: $GITHUB_WORKSPACE/sdk/sp/src/createallprojects
+    - name: make plugin
+      run: cd $GITHUB_WORKSPACE/sdk/sp/src; make -f ./everything.mak serverplugin_empty
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: built-files
+        path: ${{ github.workspace }}/sdk/sp/game/bin/
