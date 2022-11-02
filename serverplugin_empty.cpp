@@ -28,7 +28,8 @@
 #include "game/server/iplayerinfo.h"
 #include "game/server/ientityinfo.h"
 #include "game/server/igameinfo.h"
-#include "lua/lua.hpp"
+
+#include "luacontext.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -40,8 +41,6 @@ inline bool FStrEq(const char *sz1, const char *sz2)
 	return(Q_stricmp(sz1, sz2) == 0);
 }
 #endif
-
-static lua_State* lua_state;
 
 //---------------------------------------------------------------------------------
 // Purpose: a sample 3rd party plugin class
@@ -82,8 +81,6 @@ public:
 CEmptyServerPlugin g_EmtpyServerPlugin;
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CEmptyServerPlugin, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, g_EmtpyServerPlugin );
 
-ConVar empty_cvar("plugin_empty", "0", FCVAR_ARCHIVE, "Example plugin cvar");
-
 //---------------------------------------------------------------------------------
 // Purpose: constructor/destructor
 //---------------------------------------------------------------------------------
@@ -95,26 +92,6 @@ CEmptyServerPlugin::~CEmptyServerPlugin()
 {
 }
 
-static int l_my_print(lua_State* L) {
-    int nargs = lua_gettop(L);
-
-    for (int i=1; i <= nargs; i++) {
-        if (lua_isstring(L, i)) {
-            Msg("%s", lua_tostring(L, i));
-        }
-        else {
-        /* Do something with non-strings if you like */
-        }
-    }
-
-    return 0;
-}
-
-static const struct luaL_Reg printlib [] = {
-  {"print", l_my_print},
-  {NULL, NULL} /* end of array */
-};
-
 CON_COMMAND( lua_runstring, "run a string of lua" )
 {
 	if ( args.ArgC() < 2 )
@@ -124,12 +101,28 @@ CON_COMMAND( lua_runstring, "run a string of lua" )
 	else
 	{
 		const char *lua = args.Arg( 1 );
-	    int error = luaL_dostring(lua_state, lua);
+	    int error = luaL_dostring(g_pLuaContext->state, lua);
 	    if (error) {
-	      Warning("%s\n", lua_tostring(lua_state, -1));
-	      lua_pop(lua_state, 1);  /* pop error message from the stack */
+	      Warning("%s\n", lua_tostring(g_pLuaContext->state, -1));
+	      lua_pop(g_pLuaContext->state, 1);  /* pop error message from the stack */
 	    }
 	}
+}
+
+
+CON_COMMAND( lua_debugcallback, "call callback called 'test' with value" )
+{
+	if ( args.ArgC() < 2 )
+	{
+		Warning ( "lua_runstring <value>\n" );
+	}
+	else
+	{
+		const char *value = args.Arg( 1 );
+    	lua_pushstring(g_pLuaContext->state, value);
+		g_pLuaContext->callHook("test", 1);
+	}
+
 }
 
 //---------------------------------------------------------------------------------
@@ -140,13 +133,8 @@ bool CEmptyServerPlugin::Load(	CreateInterfaceFn interfaceFactory, CreateInterfa
 	ConnectTier1Libraries( &interfaceFactory, 1 );
 	ConnectTier2Libraries( &interfaceFactory, 1 );
 	ConVar_Register( 0 );
-
-	lua_state = luaL_newstate();   /* opens Lua */
-	luaL_openlibs(lua_state);
-
-	lua_getglobal(lua_state, "_G");
-	luaL_setfuncs(lua_state, printlib, 0);  // for Lua versions 5.2 or greater
-	lua_pop(lua_state, 1);
+	// this is probably bad code.
+	g_pLuaContext = new luaContext();
 	return true;
 }
 
@@ -155,8 +143,7 @@ bool CEmptyServerPlugin::Load(	CreateInterfaceFn interfaceFactory, CreateInterfa
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::Unload( void )
 {
-
-	lua_close(lua_state);
+	delete g_pLuaContext;
 	ConVar_Unregister( );
 	DisconnectTier2Libraries( );
 	DisconnectTier1Libraries( );
@@ -189,6 +176,8 @@ const char *CEmptyServerPlugin::GetPluginDescription( void )
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::LevelInit( char const *pMapName )
 {
+	lua_pushstring(g_pLuaContext->state, pMapName);
+	g_pLuaContext->callHook("LevelInit", 1);
 }
 
 //---------------------------------------------------------------------------------
@@ -204,6 +193,8 @@ void CEmptyServerPlugin::ServerActivate( edict_t *pEdictList, int edictCount, in
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::GameFrame( bool simulating )
 {
+	lua_pushboolean(g_pLuaContext->state, simulating);
+	g_pLuaContext->callHook("GameFrame", 1);
 }
 
 //---------------------------------------------------------------------------------
@@ -211,6 +202,7 @@ void CEmptyServerPlugin::GameFrame( bool simulating )
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::LevelShutdown( void ) // !!!!this can get called multiple times per map change
 {
+	g_pLuaContext->callHook("LevelShutdown", 0);
 }
 
 //---------------------------------------------------------------------------------
@@ -218,6 +210,7 @@ void CEmptyServerPlugin::LevelShutdown( void ) // !!!!this can get called multip
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::ClientActive( edict_t *pEntity )
 {
+	g_pLuaContext->callHook("ClientActive", 0);
 }
 
 //---------------------------------------------------------------------------------
@@ -225,6 +218,7 @@ void CEmptyServerPlugin::ClientActive( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::ClientDisconnect( edict_t *pEntity )
 {
+	g_pLuaContext->callHook("ClientDisconnect", 0);
 }
 
 //---------------------------------------------------------------------------------
@@ -260,6 +254,15 @@ PLUGIN_RESULT CEmptyServerPlugin::ClientConnect( bool *bAllowConnect, edict_t *p
 //---------------------------------------------------------------------------------
 PLUGIN_RESULT CEmptyServerPlugin::ClientCommand( edict_t *pEntity, const CCommand &args )
 {
+	const char *pcmd = args[0];
+
+	if ( !pEntity || pEntity->IsFree() ) 
+	{
+		return PLUGIN_CONTINUE;
+	}
+	// TODO: should have an option to stop execution
+	lua_pushstring(g_pLuaContext->state, pcmd);
+	g_pLuaContext->callHook("ClientCommand", 1);
 	return PLUGIN_CONTINUE;
 }
 
