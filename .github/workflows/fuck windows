@@ -1,0 +1,48 @@
+REG add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\10.0\Projects\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}" "//v" DefaultProjectExtension "//d" vcproj
+// in the serverplugin folder
+msbuild.exe -v:diag
+
+
+"$(VCInstallDir)bin\ml.exe" /safeseh /c /Cp /Zi /Fo"$(IntDir)\%(Fil
+ename).obj" "%(FullPath)"
+
+"/c/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/bin/ml.exe" /safeseh /c /Cp /Zi /Fo".\Debug\.\\pointeroverride.obj" "D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\pointeroverride.asm"
+/Tools/MSVC/14.33.31629/bin/Hostx86/x86"
+\Tools\MSVC\14.33.31629\bin\Hostx86\x86\ml.exe
+
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(122,1): error C2144: syntax error: 'void' should be preceded by ';' [D:\a\jbmod-lua\jbmod-
+lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(122,17): error C4430: missing type specifier - int assumed. Note: C++ does not support def
+ault-int [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(127,11): error C2144: syntax error: 'void' should be preceded by ';' [D:\a\jbmod-lua\jbmod
+-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(127,16): error C4430: missing type specifier - int assumed. Note: C++ does not support def
+ault-int [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(127,1): error C2086: 'int _CRTNOALIAS': redefinition [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\
+utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(132,1): error C2144: syntax error: 'void' should be preceded by ';' [D:\a\jbmod-lua\jbmod-
+lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(132,17): error C4430: missing type specifier - int assumed. Note: C++ does not support def
+ault-int [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(132,1): error C2086: 'int _CRTNOALIAS': redefinition [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\
+utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(137,1): error C2144: syntax error: 'void' should be preceded by ';' [D:\a\jbmod-lua\jbmod-
+lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(137,17): error C4430: missing type specifier - int assumed. Note: C++ does not support def
+ault-int [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(137,1): error C2086: 'int _CRTNOALIAS': redefinition [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\
+utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(165,7): error C2733: '_calloc_base': you cannot overload a function with 'extern "C"' link
+age [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(177,7): error C2733: '_recalloc_base': you cannot overload a function with 'extern "C"' li
+nkage [D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(203,36): error C2660: '_calloc_base': function does not take 1 arguments [D:\a\jbmod-lua\j
+bmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+  D:\a\jbmod-lua\jbmod-lua\sdk\sp\src\public\tier0\memoverride.cpp(213,43): error C2660: '_recalloc_base': function does not take 2 arguments [D:\a\jbmod-lua
+\jbmod-lua\sdk\sp\src\utils\serverplugin_sample\serverplugin_empty.vcxproj]
+
+
+#define _CRTNOALIAS __declspec(noalias)
+#define _CRTRESTRICT __declspec(restrict)
+
+nano ../../public/tier0/memoverride.cpp

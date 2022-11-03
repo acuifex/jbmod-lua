@@ -1,0 +1,61 @@
+name: windows build
+
+on: workflow_dispatch
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: cache sdk
+      id: cache-sdk
+      uses: actions/cache@v3
+      with:
+        path: sdk
+        key: win-i-cant-be-bothered-for-now
+    - uses: actions/checkout@v3
+      if: steps.cache-sdk.outputs.cache-hit != 'true'
+      with:
+        path: 'sdk'
+        repository: 'ValveSoftware/source-sdk-2013'
+        
+# TODO: download and unpack tar gz
+#    - name: cache lua
+#      id: cache-lua
+#      uses: actions/cache@v3
+#      with:
+#        path: lua-5.4.4
+#        key: now-this-is-lua
+#    - name: and im not downloading lua on windows either
+#      if: steps.cache-lua.outputs.cache-hit != 'true'
+#      run: exit 1
+      
+#    - name: prepare sdk
+#      working-directory: ${{ github.workspace }}\sdk\sp\src\
+#      run: .\createallprojects.bat
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      
+#    - name: Build
+#      working-directory: ${{env.GITHUB_WORKSPACE}}/sdk/sp/src
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+#      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
