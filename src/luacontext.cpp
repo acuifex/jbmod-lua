@@ -1,6 +1,7 @@
 #include "luacontext.h"
 
 #include "features/hook.h"
+#include "features/keyvalues.h"
 #include "tier0/dbg.h"
 
 luaContext* g_pLuaContext = 0;
@@ -40,6 +41,7 @@ luaContext::luaContext()
     hooktable = luaL_ref(state,LUA_REGISTRYINDEX); // store said table in pseudo-registry
 
     luaL_requiref(state, "hook", luaopen_hook, 1);
+    luaL_requiref(state, "KeyValues", luaopen_keyvalues, 1);
 }
 
 // debug function

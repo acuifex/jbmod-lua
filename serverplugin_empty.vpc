@@ -31,6 +31,7 @@ $Project "Serverplugin_empty"
 		$File	"serverplugin_empty.cpp"
 
 		$File	"features\hook.cpp"
+		$File	"features\keyvalues.cpp"
 	}
 
 	$Folder	"Header Files"
