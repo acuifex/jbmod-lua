@@ -1,0 +1,106 @@
+#include "luacontext.h"
+
+#include "tier0/dbg.h"
+
+luaContext* g_pLuaContext = 0;
+
+static int Lua_print(lua_State* L) {
+    int nargs = lua_gettop(L);
+
+    for (int i=1; i <= nargs; i++) {
+        if (lua_isstring(L, i)) {
+            Msg("%s", lua_tostring(L, i));
+        }
+    }
+    return 0;
+}
+
+static const struct luaL_Reg printlib [] = {
+    {"print", Lua_print},
+    {NULL, NULL} /* end of array */
+};
+
+static int Lua_hook_set(lua_State* L) {
+    if(lua_gettop(L)==2 && lua_isstring(L, 1) && lua_isfunction(L, 2)) {
+        lua_rawgeti(L,LUA_REGISTRYINDEX,g_pLuaContext->hooktable);
+        lua_insert(L, 1);
+        lua_settable(L, 1);
+        lua_pop(L, 1);
+    } else {
+        Msg("incorrect order");
+    }
+    return 0;
+}
+
+static const struct luaL_Reg hooklib [] = {
+    {"set", Lua_hook_set},
+    {NULL, NULL} /* end of array */
+};
+
+luaContext::luaContext()
+{
+    state = luaL_newstate();
+    // luaL_openlibs(state); // ok let's not open all libs. some are dangerous
+    // TODO: remove this or change it's functions. currently needed for _G and other misc stuff (did you know that i'm bad at coding?)
+    luaL_requiref(state, LUA_GNAME, luaopen_base, 1);
+    luaL_requiref(state, LUA_STRLIBNAME, luaopen_string, 1);
+    luaL_requiref(state, LUA_MATHLIBNAME, luaopen_math, 1);
+    luaL_requiref(state, LUA_TABLIBNAME, luaopen_table, 1);
+
+    lua_getglobal(state, LUA_GNAME);
+    luaL_setfuncs(state, printlib, 0);
+    lua_pop(state, 1);
+
+    lua_newtable(state);  // create table for functions
+    hooktable = luaL_ref(state,LUA_REGISTRYINDEX); // store said table in pseudo-registry
+
+    luaL_newlib(state, hooklib);
+    lua_setglobal(state, "hook");
+}
+
+// debug function
+static void dumpstack (lua_State *L) {
+    int top=lua_gettop(L);
+    for (int i=1; i <= top; i++) {
+        Msg("%d\t%s\t", i, luaL_typename(L,i));
+        switch (lua_type(L, i)) {
+            case LUA_TNUMBER:
+            Msg("%g\n",lua_tonumber(L,i));
+            break;
+            case LUA_TSTRING:
+            Msg("%s\n",lua_tostring(L,i));
+            break;
+            case LUA_TBOOLEAN:
+            Msg("%s\n", (lua_toboolean(L, i) ? "true" : "false"));
+            break;
+            case LUA_TNIL:
+            Msg("%s\n", "nil");
+            break;
+            default:
+            Msg("%p\n",lua_topointer(L,i));
+            break;
+        }
+    }
+}
+
+void luaContext::callHook(const char* name, int nargs)
+{
+    lua_rawgeti(state,LUA_REGISTRYINDEX,hooktable);
+    int type = lua_getfield(state, -1, name); // get function from hooktable 
+    if (type == LUA_TNIL) {
+        lua_pop(state, 2+nargs); // pop table and nill and arguments
+        return;
+    }
+    lua_insert(state, -(nargs+2)); // place before arguments AND table
+    lua_pop(state, 1); // pop hooktable
+    int error = lua_pcall(state, nargs, 0, 0); // will output errors on garbage values. this is kinda intended
+    if (error) {
+        Warning("%s\n", lua_tostring(state, -1));
+        lua_pop(state, 1);  /* pop error message from the stack */
+    }
+}
+
+luaContext::~luaContext()
+{
+    lua_close(state);
+}

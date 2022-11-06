@@ -56,7 +56,7 @@ jobs:
       run: cp $GITHUB_WORKSPACE/lua-5.4.4/src/liblua.a $GITHUB_WORKSPACE/sdk/sp/src/lib/public/linux32/
 
     - name: move
-      run: cp $GITHUB_WORKSPACE/*.cpp $GITHUB_WORKSPACE/*.h $GITHUB_WORKSPACE/*.vpc $GITHUB_WORKSPACE/sdk/sp/src/utils/serverplugin_sample/
+      run: cp -R $GITHUB_WORKSPACE/src/ $GITHUB_WORKSPACE/*.vpc $GITHUB_WORKSPACE/sdk/sp/src/utils/serverplugin_sample/
     
     - name: patch sdk
       if: steps.cache-lua.outputs.cache-hit != 'true'
