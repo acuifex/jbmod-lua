@@ -13,7 +13,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories		"$BASE,$SRCDIR\game\server,$SRCDIR\game\shared"
+		$AdditionalIncludeDirectories		"$BASE,$SRCDIR\game\server,$SRCDIR\game\shared,$SRCDIR\utils\serverplugin_sample"
 		$PreprocessorDefinitions			"$BASE;serverplugin_emptyONLY;_MBCS"
 	}
 
@@ -29,6 +29,8 @@ $Project "Serverplugin_empty"
 	{
 		$File	"luacontext.cpp"
 		$File	"serverplugin_empty.cpp"
+
+		$File	"features\hook.cpp"
 	}
 
 	$Folder	"Header Files"

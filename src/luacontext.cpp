@@ -1,5 +1,6 @@
 #include "luacontext.h"
 
+#include "features/hook.h"
 #include "tier0/dbg.h"
 
 luaContext* g_pLuaContext = 0;
@@ -20,22 +21,6 @@ static const struct luaL_Reg printlib [] = {
     {NULL, NULL} /* end of array */
 };
 
-static int Lua_hook_set(lua_State* L) {
-    if(lua_gettop(L)==2 && lua_isstring(L, 1) && lua_isfunction(L, 2)) {
-        lua_rawgeti(L,LUA_REGISTRYINDEX,g_pLuaContext->hooktable);
-        lua_insert(L, 1);
-        lua_settable(L, 1);
-        lua_pop(L, 1);
-    } else {
-        Msg("incorrect order");
-    }
-    return 0;
-}
-
-static const struct luaL_Reg hooklib [] = {
-    {"set", Lua_hook_set},
-    {NULL, NULL} /* end of array */
-};
 
 luaContext::luaContext()
 {
@@ -54,8 +39,7 @@ luaContext::luaContext()
     lua_newtable(state);  // create table for functions
     hooktable = luaL_ref(state,LUA_REGISTRYINDEX); // store said table in pseudo-registry
 
-    luaL_newlib(state, hooklib);
-    lua_setglobal(state, "hook");
+    luaL_requiref(state, "hook", luaopen_hook, 1);
 }
 
 // debug function

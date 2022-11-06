@@ -59,7 +59,7 @@ jobs:
       run: cp -R $GITHUB_WORKSPACE/src/ $GITHUB_WORKSPACE/*.vpc $GITHUB_WORKSPACE/sdk/sp/src/utils/serverplugin_sample/
     
     - name: patch sdk
-      if: steps.cache-lua.outputs.cache-hit != 'true'
+      if: steps.cache-sdk.outputs.cache-hit != 'true'
       run: cd $GITHUB_WORKSPACE/sdk/; git apply --whitespace=fix --ignore-space-change --ignore-whitespace "$GITHUB_WORKSPACE/sdk patches"
     - name: prepare sdk
       run: $GITHUB_WORKSPACE/sdk/sp/src/createallprojects
