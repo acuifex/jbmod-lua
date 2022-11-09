@@ -85,18 +85,44 @@ CEmptyServerPlugin::~CEmptyServerPlugin()
 
 CON_COMMAND( lua_runstring, "run a string of lua" )
 {
-    if ( args.ArgC() < 2 )
+    if ( args.ArgC() != 2 )
     {
-        Warning ( "lua_runstring <lua>\n" );
+        Msg ( "lua_runstring <lua>\n" );
+        return;
     }
-    else
+    const char *lua = args.Arg( 1 );
+    int error = luaL_dostring(g_pLuaContext->state, lua);
+    if (error) {
+      Warning("%s\n", lua_tostring(g_pLuaContext->state, -1));
+      lua_pop(g_pLuaContext->state, 1);  /* pop error message from the stack */
+    }
+}
+
+CON_COMMAND( lua_run, "run <filename>.lua in lua folder" )
+{
+    if ( args.ArgC() != 2 )
     {
-        const char *lua = args.Arg( 1 );
-        int error = luaL_dostring(g_pLuaContext->state, lua);
-        if (error) {
-          Warning("%s\n", lua_tostring(g_pLuaContext->state, -1));
-          lua_pop(g_pLuaContext->state, 1);  /* pop error message from the stack */
-        }
+        Msg ( "lua_run <filename>\n" );
+        return;
+    }
+    const char *value = args.Arg( 1 );
+    char filename[ 512 ];
+    Q_snprintf( filename, sizeof( filename ), "%s.lua", value );
+
+    if (!g_pFullFileSystem->FileExists(filename, "LUA")) {
+        Msg("File not found\n");
+        return;
+    }
+
+    CUtlBuffer fileBuffer(0, 0, CUtlBuffer::READ_ONLY | CUtlBuffer::TEXT_BUFFER );
+    if (!g_pFullFileSystem->ReadFile(filename, "LUA", fileBuffer)) {
+        Msg("Unable to load file\n");
+        return;
+    }
+    if (luaL_loadbuffer(g_pLuaContext->state, fileBuffer.String(), fileBuffer.TellPut(), filename) 
+        || lua_pcall(g_pLuaContext->state, 0, LUA_MULTRET, 0)) {
+      Warning("%s\n", lua_tostring(g_pLuaContext->state, -1));
+      lua_pop(g_pLuaContext->state, 1);  /* pop error message from the stack */
     }
 }
 
@@ -105,14 +131,12 @@ CON_COMMAND( lua_debugcallback, "call callback called 'test' with value" )
 {
     if ( args.ArgC() < 2 )
     {
-        Warning ( "lua_runstring <value>\n" );
+        Msg ( "lua_debugcallback <value>\n" );
+        return;
     }
-    else
-    {
-        const char *value = args.Arg( 1 );
-        lua_pushstring(g_pLuaContext->state, value);
-        g_pLuaContext->callHook("test", 1);
-    }
+    const char *value = args.Arg( 1 );
+    lua_pushstring(g_pLuaContext->state, value);
+    g_pLuaContext->callHook("test", 1);
 
 }
 
@@ -125,6 +149,12 @@ bool CEmptyServerPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterf
     ConnectTier2Libraries( &interfaceFactory, 1 );
     ConVar_Register( 0 );
     FindInterfaces(interfaceFactory, gameServerFactory);
+    if (!g_pFullFileSystem) {
+        return false; // TODO: check more interfaces?
+    }
+    // TODO: handle this "jbmod" part dynamically
+    g_pFullFileSystem->AddSearchPath( "jbmod/lua", "LUA" );
+    g_pFullFileSystem->MarkPathIDByRequestOnly( "LUA", true );
     // this is probably bad code.
     g_pLuaContext = new luaContext();
     return true;
@@ -136,6 +166,8 @@ bool CEmptyServerPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterf
 void CEmptyServerPlugin::Unload( void )
 {
     delete g_pLuaContext;
+
+    g_pFullFileSystem->RemoveSearchPaths( "LUA" );
     ConVar_Unregister( );
     DisconnectTier2Libraries( );
     DisconnectTier1Libraries( );
