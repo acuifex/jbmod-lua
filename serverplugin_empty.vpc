@@ -14,7 +14,7 @@ $Configuration
 	$Compiler
 	{
 		$AdditionalIncludeDirectories		"$BASE,$SRCDIR\game\server,$SRCDIR\game\shared,$SRCDIR\utils\serverplugin_sample"
-		$PreprocessorDefinitions			"$BASE;serverplugin_emptyONLY;_MBCS"
+		$PreprocessorDefinitions			"$BASE;GAME_DLL;serverplugin_emptyONLY;_MBCS"
 	}
 
 	$Linker
@@ -29,9 +29,13 @@ $Project "Serverplugin_empty"
 	{
 		$File	"luacontext.cpp"
 		$File	"serverplugin_empty.cpp"
+		$File	"interfaces.cpp"
+		$File	"luaReference.cpp"
 
 		$File	"features\hook.cpp"
 		$File	"features\keyvalues.cpp"
+		$File	"features\luabaseentity.cpp"
+		$File	"features\servertools.cpp"
 	}
 
 	$Folder	"Header Files"

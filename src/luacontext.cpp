@@ -2,6 +2,8 @@
 
 #include "features/hook.h"
 #include "features/keyvalues.h"
+#include "features/servertools.h"
+#include "features/luabaseentity.h"
 #include "tier0/dbg.h"
 
 luaContext* g_pLuaContext = 0;
@@ -10,10 +12,9 @@ static int Lua_print(lua_State* L) {
     int nargs = lua_gettop(L);
 
     for (int i=1; i <= nargs; i++) {
-        if (lua_isstring(L, i)) {
-            Msg("%s", lua_tostring(L, i));
-        }
+        Msg("%s", luaL_tolstring(L, i, NULL));
     }
+
     return 0;
 }
 
@@ -42,6 +43,8 @@ luaContext::luaContext()
 
     luaL_requiref(state, "hook", luaopen_hook, 1);
     luaL_requiref(state, "KeyValues", luaopen_keyvalues, 1);
+    luaL_requiref(state, "ServerTools", luaopen_servertools, 1);
+    luabaseentity.registerType(state);
 }
 
 // debug function

@@ -8,7 +8,8 @@
 
 #include <stdio.h>
 
-//#define GAME_DLL
+// isn't necessary since it's defined by the vpc, but whatever
+#define GAME_DLL
 #ifdef GAME_DLL
 #include "cbase.h"
 #endif
@@ -24,23 +25,13 @@
 #include "vstdlib/random.h"
 #include "engine/IEngineTrace.h"
 #include "tier2/tier2.h"
-#include "game/server/pluginvariant.h"
-#include "game/server/iplayerinfo.h"
-#include "game/server/ientityinfo.h"
-#include "game/server/igameinfo.h"
 
 #include "luacontext.h"
+#include "interfaces.h"
+#include "luaReference.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
-
-// useful helper func
-#ifndef GAME_DLL
-inline bool FStrEq(const char *sz1, const char *sz2)
-{
-    return(Q_stricmp(sz1, sz2) == 0);
-}
-#endif
 
 //---------------------------------------------------------------------------------
 // Purpose: a sample 3rd party plugin class
@@ -133,6 +124,7 @@ bool CEmptyServerPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterf
     ConnectTier1Libraries( &interfaceFactory, 1 );
     ConnectTier2Libraries( &interfaceFactory, 1 );
     ConVar_Register( 0 );
+    FindInterfaces(interfaceFactory, gameServerFactory);
     // this is probably bad code.
     g_pLuaContext = new luaContext();
     return true;
