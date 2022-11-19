@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 #include "lua/lua.hpp"
 
 
@@ -11,8 +12,18 @@ struct build_indices : build_indices<N-1, N-1, Is...> {};
 template <int... Is>
 struct build_indices<0, Is...> : indices<Is...> {};
 
+// forward declare
 template<typename T>
-static T getFromStack(lua_State* L, int index) = delete;
+class luaReference;
+
+// template<typename T>
+// static T getFromStack(lua_State* L, int index) = delete;
+
+template<typename T>
+static T getFromStack(lua_State* L, int index) {
+    // this is likely dangerous, but the name field in luaReference should prevent us from creating shit types
+    return luaReference<typename std::remove_pointer<T>::type>::get(L); 
+}
 
 template<>
 const char* getFromStack<const char*>(lua_State* L, int index) {
@@ -25,7 +36,10 @@ const char* getFromStack<const char*>(lua_State* L, int index) {
 // }
 
 template<typename T>
-static void appendToStack(lua_State* L, T value) = delete;
+static void appendToStack(lua_State* L, T value) {
+    // same warning as in getFromStack<T>
+    return luaReference<typename std::remove_pointer<T>::type>::create(L, value);
+}
 
 template<>
 void appendToStack<bool>(lua_State* L, bool value) {
@@ -37,9 +51,8 @@ template <typename ret>
 class superUglyHack {
 public:
     template <typename t, typename... params, int... i>
-    static int callmethod_impl(lua_State* L, t* that, ret (t::*f)(params...), indices<i...>) {
-        // +2 is because it starts from zero, and we have this pointer on the stack
-        appendToStack(L,(that->*f)(getFromStack<params>(L, i + 2)...));
+    static int callmethod_impl(lua_State* L, t* that, ret (t::*f)(params...), indices<i...>, int offset = 1) {
+        appendToStack(L,(that->*f)(getFromStack<params>(L, i + offset)...));
         return 1;
     }
 };
@@ -48,17 +61,19 @@ template <>
 class superUglyHack<void> {
 public:
     template <typename t, typename... params, int... i>
-    static int callmethod_impl(lua_State* L, t* that, void (t::*f)(params...), indices<i...>) {
-        (that->*f)(getFromStack<params>(L, i + 2)...);
+    static int callmethod_impl(lua_State* L, t* that, void (t::*f)(params...), indices<i...>, int offset = 1) {
+        (that->*f)(getFromStack<params>(L, i + offset)...);
         return 0;
     }
 };
-    // template<typename ret, typename t, typename... params>
-    // static int callmethod(lua_State* L, luaReference<t> r, ret (T::*f)(params...)) {
-    //     t* that = r.get(L);
-    //     return superUglyHack<ret>::callmethod_impl(L, that, f, build_indices<sizeof...(params)>{});
-    // }
 
+// for interfaces
+template<typename T, typename ret, typename... params>
+int call(lua_State* L, T* that, ret (T::*f)(params...)) {
+    return superUglyHack<ret>::callmethod_impl(L, that, f, build_indices<sizeof...(params)>{});
+}
+
+// for types
 template<typename T>
 class luaReference {
 private:
@@ -73,7 +88,7 @@ public:
 
     template<typename ret, typename... params>
     static int callmethod(lua_State* L, ret (T::*f)(params...)) {
-        return superUglyHack<ret>::callmethod_impl(L, get(L), f, build_indices<sizeof...(params)>{});
+        return superUglyHack<ret>::callmethod_impl(L, get(L), f, build_indices<sizeof...(params)>{}, 2);
     }
 };
 
