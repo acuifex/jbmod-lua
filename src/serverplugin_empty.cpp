@@ -153,6 +153,7 @@ bool CEmptyServerPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterf
         return false; // TODO: check more interfaces?
     }
     // TODO: handle this "jbmod" part dynamically
+    // engine->GetGameDir ?
     g_pFullFileSystem->AddSearchPath( "jbmod/lua", "LUA" );
     g_pFullFileSystem->MarkPathIDByRequestOnly( "LUA", true );
     // this is probably bad code.

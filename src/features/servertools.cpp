@@ -1,18 +1,20 @@
 #include "servertools.h"
 
-#include "luabaseentity.h"
+#include "cbase.h"
+
 #include "interfaces.h"
+#include "luaReference.h"
 
 static int CreateEntityByName(lua_State* L) {
     const char* name = luaL_checkstring(L, 1);
     CBaseEntity* ent = serverTools->CreateEntityByName(name);
-    luabaseentity.create(L, ent);
+    luaReference<CBaseEntity>::create(L, ent);
     return 1;
 }
 
 static int DispatchSpawn(lua_State* L) {
-    void* ent = luabaseentity.get(L);
-    serverTools->DispatchSpawn((CBaseEntity*)ent);
+    CBaseEntity* ent = luaReference<CBaseEntity>::get(L);
+    serverTools->DispatchSpawn(ent);
     return 0;
 }
 

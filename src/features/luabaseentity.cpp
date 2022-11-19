@@ -1,37 +1,49 @@
 #include "luabaseentity.h"
 
+#include <type_traits>
 #include "cbase.h"
 
+#include "luaReference.h"
+
+// FIXME: probably should store EHANDLE
+
 static int KeyValue(lua_State* L) {
-    CBaseEntity* ent = (CBaseEntity*) luabaseentity.get(L);
+    // hack to specify a function overload
+    return luaReference<CBaseEntity>::callmethod(L, (bool (CBaseEntity::*)(const char *, const char *))&CBaseEntity::KeyValue);
+}
 
-    const char* k = luaL_checkstring(L, 2);
-    const char* v = luaL_checkstring(L, 3);
+static int SetModel(lua_State* L) {
+    return luaReference<CBaseEntity>::callmethod(L, &CBaseEntity::SetModel);
+}
 
-    ent->KeyValue(k, v);
-    return 0;
+
+static int IsMoving(lua_State* L) {
+    return luaReference<CBaseEntity>::callmethod(L, &CBaseEntity::IsMoving);
 }
 
 
 static int Precache(lua_State* L) {
-    CBaseEntity* ent = (CBaseEntity*) luabaseentity.get(L);
+    CBaseEntity* ent = luaReference<CBaseEntity>::get(L);
     ent->Precache();
     return 0;
 }
 
 
 static int Activate(lua_State* L) {
-    CBaseEntity* ent = (CBaseEntity*) luabaseentity.get(L);
+    CBaseEntity* ent = luaReference<CBaseEntity>::get(L);
     ent->Activate();
     return 0;
 }
 
-
-static const struct luaL_Reg baseentity_m [] = {
+template<>
+const char* luaReference<CBaseEntity>::name = "CBaseEntity";
+template<>
+const struct luaL_Reg luaReference<CBaseEntity>::methods [] = {
     {"KeyValue", KeyValue},
+    // {"SetRenderColor", SetRenderColor}, // we can't call non virtual functions unfortunately. use keyvalue lol
+    {"IsMoving", IsMoving},
+    {"SetModel", SetModel},
     {"Precache", Precache},
     {"Activate", Activate},
     {NULL, NULL}
 };
-
-luaReference luabaseentity("BaseEntity", baseentity_m);

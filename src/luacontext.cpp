@@ -1,10 +1,13 @@
 #include "luacontext.h"
 
+#include "tier0/dbg.h"
+#include "cbase.h"
+
 #include "features/hook.h"
 #include "features/keyvalues.h"
 #include "features/servertools.h"
 #include "features/luabaseentity.h"
-#include "tier0/dbg.h"
+#include "luaReference.h"
 
 luaContext* g_pLuaContext = 0;
 
@@ -44,7 +47,7 @@ luaContext::luaContext()
     luaL_requiref(state, "hook", luaopen_hook, 1);
     luaL_requiref(state, "KeyValues", luaopen_keyvalues, 1);
     luaL_requiref(state, "ServerTools", luaopen_servertools, 1);
-    luabaseentity.registerType(state);
+    luaReference<CBaseEntity>::registerType(state);
 }
 
 // debug function
