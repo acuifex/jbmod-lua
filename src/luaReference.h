@@ -22,7 +22,11 @@ class luaReference;
 template<typename T>
 static T getFromStack(lua_State* L, int index) {
     // this is likely dangerous, but the name field in luaReference should prevent us from creating shit types
-    return luaReference<typename std::remove_pointer<T>::type>::get(L); 
+    return luaReference<typename std::remove_pointer<T>::type>::get(L);
+}
+template<>
+int getFromStack<int>(lua_State* L, int index) {
+    return luaL_checkinteger(L, index);
 }
 
 template<>

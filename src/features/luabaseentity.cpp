@@ -1,5 +1,3 @@
-#include "luabaseentity.h"
-
 #include <type_traits>
 #include "cbase.h"
 

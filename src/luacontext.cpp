@@ -6,7 +6,6 @@
 #include "features/hook.h"
 #include "features/keyvalues.h"
 #include "features/servertools.h"
-#include "features/luabaseentity.h"
 #include "luaReference.h"
 
 luaContext* g_pLuaContext = 0;

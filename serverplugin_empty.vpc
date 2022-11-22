@@ -30,7 +30,6 @@ $Project "Serverplugin_empty"
 		$File	"luacontext.cpp"
 		$File	"serverplugin_empty.cpp"
 		$File	"interfaces.cpp"
-		$File	"luaReference.cpp"
 
 		$File	"features\hook.cpp"
 		$File	"features\keyvalues.cpp"
