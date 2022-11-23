@@ -1,0 +1,42 @@
+//-----------------------------------------------------------------------------
+//	luaplugin.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		"..\.."
+$Macro OUTBINDIR	"$SRCDIR\..\game\bin"
+
+$Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories		"$BASE,$SRCDIR\game\server,$SRCDIR\game\shared,$SRCDIR\utils\luaplugin\src,$SRCDIR\utils\luaplugin\lua\src"
+		// TODO: we need to build lua with the source engine things
+		$PreprocessorDefinitions			"$BASE;GAME_DLL;_MBCS"
+	}
+}
+
+$Project "luaplugin"
+{
+	$Folder	"Source Files"
+	{
+		$File	"src\luacontext.cpp"
+		$File	"src\main.cpp"
+		$File	"src\interfaces.cpp"
+
+		$File	"src\features\hook.cpp"
+		$File	"src\features\keyvalues.cpp"
+		$File	"src\features\luabaseentity.cpp"
+		$File	"src\features\servertools.cpp"
+	}
+
+	$Folder	"Link Libraries"
+	{
+		$Lib mathlib
+		$Lib tier2
+		$Lib liblua
+	}
+}

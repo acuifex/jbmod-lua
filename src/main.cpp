@@ -1,20 +1,6 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
-//
-// Purpose: 
-//
-// $NoKeywords: $
-//
-//===========================================================================//
-
 #include <stdio.h>
 
-// isn't necessary since it's defined by the vpc, but whatever
-#define GAME_DLL
-#ifdef GAME_DLL
 #include "cbase.h"
-#endif
-
-#include <stdio.h>
 #include "interface.h"
 #include "filesystem.h"
 #include "engine/iserverplugin.h"
@@ -36,11 +22,11 @@
 //---------------------------------------------------------------------------------
 // Purpose: a sample 3rd party plugin class
 //---------------------------------------------------------------------------------
-class CEmptyServerPlugin: public IServerPluginCallbacks
+class CLuaPlugin: public IServerPluginCallbacks
 {
 public:
-    CEmptyServerPlugin();
-    ~CEmptyServerPlugin();
+    CLuaPlugin();
+    ~CLuaPlugin();
 
     // IServerPluginCallbacks methods
     virtual bool            Load(   CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerFactory );
@@ -69,17 +55,14 @@ public:
 // 
 // The plugin is a static singleton that is exported as an interface
 //
-CEmptyServerPlugin g_EmtpyServerPlugin;
-EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CEmptyServerPlugin, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, g_EmtpyServerPlugin );
+CLuaPlugin g_LuaPlugin;
+EXPOSE_SINGLE_INTERFACE_GLOBALVAR(CLuaPlugin, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, g_LuaPlugin );
 
-//---------------------------------------------------------------------------------
-// Purpose: constructor/destructor
-//---------------------------------------------------------------------------------
-CEmptyServerPlugin::CEmptyServerPlugin()
+CLuaPlugin::CLuaPlugin()
 {
 }
 
-CEmptyServerPlugin::~CEmptyServerPlugin()
+CLuaPlugin::~CLuaPlugin()
 {
 }
 
@@ -143,7 +126,7 @@ CON_COMMAND( lua_debugcallback, "call callback called 'test' with value" )
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is loaded, load the interface we need from the engine
 //---------------------------------------------------------------------------------
-bool CEmptyServerPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerFactory )
+bool CLuaPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerFactory )
 {
     ConnectTier1Libraries( &interfaceFactory, 1 );
     ConnectTier2Libraries( &interfaceFactory, 1 );
@@ -164,7 +147,7 @@ bool CEmptyServerPlugin::Load(  CreateInterfaceFn interfaceFactory, CreateInterf
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is unloaded (turned off)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::Unload( void )
+void CLuaPlugin::Unload( void )
 {
     delete g_pLuaContext;
 
@@ -177,21 +160,21 @@ void CEmptyServerPlugin::Unload( void )
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is paused (i.e should stop running but isn't unloaded)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::Pause( void )
+void CLuaPlugin::Pause( void )
 {
 }
 
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is unpaused (i.e should start executing again)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::UnPause( void )
+void CLuaPlugin::UnPause( void )
 {
 }
 
 //---------------------------------------------------------------------------------
 // Purpose: the name of this plugin, returned in "plugin_print" command
 //---------------------------------------------------------------------------------
-const char *CEmptyServerPlugin::GetPluginDescription( void )
+const char *CLuaPlugin::GetPluginDescription( void )
 {
     return "lua mod by some guy named acuifex";
 }
@@ -199,7 +182,7 @@ const char *CEmptyServerPlugin::GetPluginDescription( void )
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::LevelInit( char const *pMapName )
+void CLuaPlugin::LevelInit( char const *pMapName )
 {
     lua_pushstring(g_pLuaContext->state, pMapName);
     g_pLuaContext->callHook("LevelInit", 1);
@@ -209,14 +192,14 @@ void CEmptyServerPlugin::LevelInit( char const *pMapName )
 // Purpose: called on level start, when the server is ready to accept client connections
 //      edictCount is the number of entities in the level, clientMax is the max client count
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
+void CLuaPlugin::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
 {
 }
 
 //---------------------------------------------------------------------------------
 // Purpose: called once per server frame, do recurring work here (like checking for timeouts)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::GameFrame( bool simulating )
+void CLuaPlugin::GameFrame( bool simulating )
 {
     lua_pushboolean(g_pLuaContext->state, simulating);
     g_pLuaContext->callHook("GameFrame", 1);
@@ -225,7 +208,7 @@ void CEmptyServerPlugin::GameFrame( bool simulating )
 //---------------------------------------------------------------------------------
 // Purpose: called on level end (as the server is shutting down or going to a new map)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::LevelShutdown( void ) // !!!!this can get called multiple times per map change
+void CLuaPlugin::LevelShutdown( void ) // !!!!this can get called multiple times per map change
 {
     g_pLuaContext->callHook("LevelShutdown", 0);
 }
@@ -233,7 +216,7 @@ void CEmptyServerPlugin::LevelShutdown( void ) // !!!!this can get called multip
 //---------------------------------------------------------------------------------
 // Purpose: called when a client spawns into a server (i.e as they begin to play)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::ClientActive( edict_t *pEntity )
+void CLuaPlugin::ClientActive( edict_t *pEntity )
 {
     g_pLuaContext->callHook("ClientActive", 0);
 }
@@ -241,7 +224,7 @@ void CEmptyServerPlugin::ClientActive( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 // Purpose: called when a client leaves a server (or is timed out)
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::ClientDisconnect( edict_t *pEntity )
+void CLuaPlugin::ClientDisconnect( edict_t *pEntity )
 {
     g_pLuaContext->callHook("ClientDisconnect", 0);
 }
@@ -249,27 +232,27 @@ void CEmptyServerPlugin::ClientDisconnect( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 // Purpose: called on 
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::ClientPutInServer( edict_t *pEntity, char const *playername )
+void CLuaPlugin::ClientPutInServer( edict_t *pEntity, char const *playername )
 {
 }
 
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::SetCommandClient( int index )
+void CLuaPlugin::SetCommandClient( int index )
 {
 }
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::ClientSettingsChanged( edict_t *pEdict )
+void CLuaPlugin::ClientSettingsChanged( edict_t *pEdict )
 {
 }
 
 //---------------------------------------------------------------------------------
 // Purpose: called when a client joins a server
 //---------------------------------------------------------------------------------
-PLUGIN_RESULT CEmptyServerPlugin::ClientConnect( bool *bAllowConnect, edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen )
+PLUGIN_RESULT CLuaPlugin::ClientConnect( bool *bAllowConnect, edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen )
 {
     return PLUGIN_CONTINUE;
 }
@@ -277,7 +260,7 @@ PLUGIN_RESULT CEmptyServerPlugin::ClientConnect( bool *bAllowConnect, edict_t *p
 //---------------------------------------------------------------------------------
 // Purpose: called when a client types in a command (only a subset of commands however, not CON_COMMAND's)
 //---------------------------------------------------------------------------------
-PLUGIN_RESULT CEmptyServerPlugin::ClientCommand( edict_t *pEntity, const CCommand &args )
+PLUGIN_RESULT CLuaPlugin::ClientCommand( edict_t *pEntity, const CCommand &args )
 {
     const char *pcmd = args[0];
 
@@ -294,7 +277,7 @@ PLUGIN_RESULT CEmptyServerPlugin::ClientCommand( edict_t *pEntity, const CComman
 //---------------------------------------------------------------------------------
 // Purpose: called when a client is authenticated
 //---------------------------------------------------------------------------------
-PLUGIN_RESULT CEmptyServerPlugin::NetworkIDValidated( const char *pszUserName, const char *pszNetworkID )
+PLUGIN_RESULT CLuaPlugin::NetworkIDValidated( const char *pszUserName, const char *pszNetworkID )
 {
     return PLUGIN_CONTINUE;
 }
@@ -302,12 +285,12 @@ PLUGIN_RESULT CEmptyServerPlugin::NetworkIDValidated( const char *pszUserName, c
 //---------------------------------------------------------------------------------
 // Purpose: called when a cvar value query is finished
 //---------------------------------------------------------------------------------
-void CEmptyServerPlugin::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue )
+void CLuaPlugin::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue )
 {}
-void CEmptyServerPlugin::OnEdictAllocated( edict_t *edict )
+void CLuaPlugin::OnEdictAllocated( edict_t *edict )
 {
 }
-void CEmptyServerPlugin::OnEdictFreed( const edict_t *edict  )
+void CLuaPlugin::OnEdictFreed( const edict_t *edict  )
 {
 }
 

@@ -1,4 +1,4 @@
 #pragma once
-#include "lua/lua.hpp"
+#include "lua.hpp"
 
 int luaopen_keyvalues (lua_State *L);

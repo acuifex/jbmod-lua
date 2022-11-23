@@ -1,4 +1,4 @@
 #pragma once
-#include "lua/lua.hpp"
+#include "lua.hpp"
 
 int luaopen_hook (lua_State *L);

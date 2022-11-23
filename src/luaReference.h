@@ -1,6 +1,6 @@
 #pragma once
 #include <type_traits>
-#include "lua/lua.hpp"
+#include "lua.hpp"
 
 
 template <int... Is>
