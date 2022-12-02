@@ -1,34 +1,22 @@
-#include "servertools.h"
-
-#include "cbase.h"
-
 #include "interfaces.h"
 #include "luaReference.h"
 
-static int CreateEntityByName(lua_State* L) {
-    // const char* name = luaL_checkstring(L, 1);
-    // CBaseEntity* ent = serverTools->CreateEntityByName(name);
-    // luaReference<CBaseEntity>::create(L, ent);
-    // return 1;
-    return call(L, serverTools, &IServerTools::CreateEntityByName);
-}
+#include "toolframework/itoolentity.h"
 
-static int DispatchSpawn(lua_State* L) {
-    return call(L, serverTools, &IServerTools::DispatchSpawn);
-}
+DEFINE_FUNCTION_INTERFACE(IServerTools, CreateEntityByName)
+DEFINE_FUNCTION_INTERFACE(IServerTools, DispatchSpawn)
+DEFINE_FUNCTION_INTERFACE(IServerTools, RemoveEntity)
+DEFINE_FUNCTION_INTERFACE(IServerTools, GetBaseEntityByEntIndex)
+DEFINE_FUNCTION_INTERFACE(IServerTools, FirstEntity)
+DEFINE_FUNCTION_INTERFACE(IServerTools, NextEntity)
+DEFINE_FUNCTION_INTERFACE(IServerTools, FindEntityByHammerID)
 
-static int GetBaseEntityByEntIndex(lua_State* L) {
-    return call(L, serverTools, &IServerTools::GetBaseEntityByEntIndex);
-}
-
-static const struct luaL_Reg lib [] = {
-    {"CreateEntityByName", CreateEntityByName},
-    {"DispatchSpawn", DispatchSpawn},
-    {"GetBaseEntityByEntIndex", GetBaseEntityByEntIndex},
-    {NULL, NULL} /* end of array */
-};
-
-int luaopen_servertools (lua_State *L) {
-  luaL_newlib(L, lib);
-  return 1;
-}
+BEGIN_INTERFACE(IServerTools)
+    APPEND_FUNCTION_INTERFACE(IServerTools, CreateEntityByName)
+    APPEND_FUNCTION_INTERFACE(IServerTools, DispatchSpawn)
+    APPEND_FUNCTION_INTERFACE(IServerTools, RemoveEntity)
+    APPEND_FUNCTION_INTERFACE(IServerTools, GetBaseEntityByEntIndex)
+    APPEND_FUNCTION_INTERFACE(IServerTools, FirstEntity)
+    APPEND_FUNCTION_INTERFACE(IServerTools, NextEntity)
+    APPEND_FUNCTION_INTERFACE(IServerTools, FindEntityByHammerID)
+END_INTERFACE(IServerTools)

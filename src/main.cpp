@@ -11,6 +11,7 @@
 #include "vstdlib/random.h"
 #include "engine/IEngineTrace.h"
 #include "tier2/tier2.h"
+#include "tier1/utlbuffer.h"
 
 #include "luacontext.h"
 #include "interfaces.h"
@@ -184,7 +185,7 @@ const char *CLuaPlugin::GetPluginDescription( void )
 //---------------------------------------------------------------------------------
 void CLuaPlugin::LevelInit( char const *pMapName )
 {
-    lua_pushstring(g_pLuaContext->state, pMapName);
+    appendToStack(g_pLuaContext->state, pMapName);
     g_pLuaContext->callHook("LevelInit", 1);
 }
 
@@ -201,7 +202,7 @@ void CLuaPlugin::ServerActivate( edict_t *pEdictList, int edictCount, int client
 //---------------------------------------------------------------------------------
 void CLuaPlugin::GameFrame( bool simulating )
 {
-    lua_pushboolean(g_pLuaContext->state, simulating);
+    appendToStack(g_pLuaContext->state, simulating);
     g_pLuaContext->callHook("GameFrame", 1);
 }
 
@@ -269,7 +270,7 @@ PLUGIN_RESULT CLuaPlugin::ClientCommand( edict_t *pEntity, const CCommand &args 
         return PLUGIN_CONTINUE;
     }
     // TODO: should have an option to stop execution
-    lua_pushstring(g_pLuaContext->state, pcmd);
+    appendToStack(g_pLuaContext->state, pcmd);
     g_pLuaContext->callHook("ClientCommand", 1);
     return PLUGIN_CONTINUE;
 }

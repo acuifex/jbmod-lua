@@ -5,43 +5,22 @@
 
 // FIXME: probably should store EHANDLE
 
-static int KeyValue(lua_State* L) {
+DEFINE_FUNCTION_TYPE(CBaseEntity, Activate)
+DEFINE_FUNCTION_TYPE(CBaseEntity, Precache)
+DEFINE_FUNCTION_TYPE(CBaseEntity, IsMoving)
+DEFINE_FUNCTION_TYPE(CBaseEntity, SetModel)
+DEFINE_FUNCTION_TYPE(CBaseEntity, GetClassname)
+
+DEFINE_FUNCTION_TYPE_CUSTOM(CBaseEntity, KeyValue) {
     // hack to specify a function overload
     return luaReference<CBaseEntity>::callmethod(L, (bool (CBaseEntity::*)(const char *, const char *))&CBaseEntity::KeyValue);
 }
 
-static int SetModel(lua_State* L) {
-    return luaReference<CBaseEntity>::callmethod(L, &CBaseEntity::SetModel);
-}
-
-
-static int IsMoving(lua_State* L) {
-    return luaReference<CBaseEntity>::callmethod(L, &CBaseEntity::IsMoving);
-}
-
-
-static int Precache(lua_State* L) {
-    CBaseEntity* ent = luaReference<CBaseEntity>::get(L);
-    ent->Precache();
-    return 0;
-}
-
-
-static int Activate(lua_State* L) {
-    CBaseEntity* ent = luaReference<CBaseEntity>::get(L);
-    ent->Activate();
-    return 0;
-}
-
-template<>
-const char* luaReference<CBaseEntity>::name = "CBaseEntity";
-template<>
-const struct luaL_Reg luaReference<CBaseEntity>::methods [] = {
-    {"KeyValue", KeyValue},
-    // {"SetRenderColor", SetRenderColor}, // we can't call non virtual functions unfortunately. use keyvalue lol
-    {"IsMoving", IsMoving},
-    {"SetModel", SetModel},
-    {"Precache", Precache},
-    {"Activate", Activate},
-    {NULL, NULL}
-};
+BEGIN_TYPE(CBaseEntity)
+    APPEND_FUNCTION_TYPE(CBaseEntity, Activate)
+    APPEND_FUNCTION_TYPE(CBaseEntity, Precache)
+    APPEND_FUNCTION_TYPE(CBaseEntity, IsMoving)
+    APPEND_FUNCTION_TYPE(CBaseEntity, SetModel)
+    APPEND_FUNCTION_TYPE(CBaseEntity, KeyValue)
+    APPEND_FUNCTION_TYPE(CBaseEntity, GetClassname)
+END_TYPE(CBaseEntity)

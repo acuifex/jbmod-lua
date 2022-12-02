@@ -1,9 +1,11 @@
 #include "interfaces.h"
 
-IServerTools* serverTools = nullptr;
+#include "toolframework/itoolentity.h"
+
 void FindInterfaces(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerFactory)
 {
-	serverTools = (IServerTools *)gameServerFactory(VSERVERTOOLS_INTERFACE_VERSION, NULL);
+	getInterface<IServerTools>::value = static_cast<IServerTools*>(gameServerFactory(VSERVERTOOLS_INTERFACE_VERSION, NULL));
+
 }
 
 

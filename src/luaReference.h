@@ -2,6 +2,38 @@
 #include <type_traits>
 #include "lua.hpp"
 
+// TODO: all of this interface stuff probably should go into another file, but whatever
+#define BEGIN_INTERFACE(type) static const struct luaL_Reg lib_##type [] = {
+
+#define APPEND_FUNCTION_INTERFACE(type, name) {#name, name##_##type},
+
+#define DEFINE_FUNCTION_INTERFACE(type, name) static int name##_##type(lua_State* L) {\
+    return call(L, getInterface<type>::value, &type::name);\
+}
+
+#define END_INTERFACE(type) {NULL, NULL}};\
+int luaopen_##type (lua_State *L) {\
+  luaL_newlib(L, lib_##type);\
+  return 1;\
+}\
+
+#define LOAD_INTERFACE(type, luastate) extern int luaopen_##type (lua_State *L);\
+luaL_requiref(luastate, #type, luaopen_##type, 1)
+
+
+#define BEGIN_TYPE(type) template<> const char* luaReference<type>::name = #type;\
+template<> const struct luaL_Reg luaReference<type>::methods [] = {
+
+#define APPEND_FUNCTION_TYPE(type, name) {#name, name##_##type},
+
+#define DEFINE_FUNCTION_TYPE_CUSTOM(type, name) static int name##_##type(lua_State* L)
+
+#define DEFINE_FUNCTION_TYPE(type, name) DEFINE_FUNCTION_TYPE_CUSTOM(type, name) {\
+    return luaReference<type>::callmethod(L, &type::name);\
+}
+
+// type isn't actually necessary here, but consistency is nice.
+#define END_TYPE(type) {NULL, NULL}};
 
 template <int... Is>
 struct indices {};
@@ -48,6 +80,11 @@ static void appendToStack(lua_State* L, T value) {
 template<>
 void appendToStack<bool>(lua_State* L, bool value) {
     lua_pushboolean(L, value);
+}
+
+template<>
+void appendToStack<const char*>(lua_State* L, const char* value) {
+    lua_pushstring(L, value);
 }
 
 // i hate this

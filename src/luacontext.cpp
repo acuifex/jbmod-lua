@@ -5,7 +5,6 @@
 
 #include "features/hook.h"
 #include "features/keyvalues.h"
-#include "features/servertools.h"
 #include "luaReference.h"
 
 luaContext* g_pLuaContext = 0;
@@ -45,7 +44,7 @@ luaContext::luaContext()
 
     luaL_requiref(state, "hook", luaopen_hook, 1);
     luaL_requiref(state, "KeyValues", luaopen_keyvalues, 1);
-    luaL_requiref(state, "ServerTools", luaopen_servertools, 1);
+    LOAD_INTERFACE(IServerTools, state);
     luaReference<CBaseEntity>::registerType(state);
 }
 
