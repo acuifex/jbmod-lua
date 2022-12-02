@@ -1,0 +1,6 @@
+/lua/
+/*.png 
+/publish
+/obj_luaplugin_linux32/
+/luaplugin_*
+/publish.vdf
