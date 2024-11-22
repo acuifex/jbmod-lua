@@ -21,10 +21,26 @@ https://developer.valvesoftware.com/wiki/Source_SDK_2013#Source_SDK_2013_on_Linu
 
 
 # Compiling for windows
-Added with https://github.com/acuifex/jbmod-lua/pull/1. Apparently requires WSL (Windows Subsystem for Linux) and MinGW GCC.
-
-Download and run `windows/compile.bat`. This will complete steps equivelent to 1-9 on linux.
-
+1. Install `git` and run the command `git clone https://github.com/ValveSoftware/source-sdk-2013` then head to `<path-to-sourcesdk2013>\sp\src\utils\`
+2. Clone the repo in this directory with this command `git clone https://github.com/acuifex/jbmod-lua luaplugin` there should be a new directory named `luaplugin`
+3. now clone the [Lua repository](https://github.com/lua/lua) into the `luaplugin` directory with the command `git clone https://github.com/lua/lua.git`
+4. then head back to `src` and download the `.lib` from [Lua's Sourceforge](https://sourceforge.net/projects/luabinaries/) Windows Libraries > Static and select the one that uses Win32 and move it to `lib\public`
+5. now edit the `project.vgc` located in `sp|mp\src\vpc_scripts` now add this line in the top of the file (above `captioncompiler`)
+```
+$Project "Lua"
+{
+	"utils\luaplugin\luaplugin.vpc"
+}
+``` 
+6. then edit `groups.vgc` and in the `game` group and `everything` group add
+```
+"luaplugin"
+```
+7. then run `creategameprojects.bat` or `createeverythingprojects.bat` and build the new `lua` project
+8. move the `luaplugin.dll` to `steam/steamapps/common/JBMod/jbmod`
+9. run jbmod with the `-insecure` flag
+10. in jbmod run the command `plugin_load lua`
+11. you should now be able to run `lua` commands such as `lua_runstring "print(42+69)"`
 
 # TODO
 - do the compiling at least somewhat properly. see https://github.com/YaLTeR/SourcePauseTool for copypasting

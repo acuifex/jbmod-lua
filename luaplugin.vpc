@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------------
 
 $Macro SRCDIR		"..\.."
-$Macro OUTBINDIR	"$SRCDIR\..\game\bin"
+$Macro OUTBINDIR	"..\..\..\game\luaplugin\bin"
 
 $Include "$SRCDIR\vpc_scripts\source_dll_base.vpc"
 
@@ -15,7 +15,7 @@ $Configuration
 	{
 		$AdditionalIncludeDirectories		"$BASE,$SRCDIR\game\server,$SRCDIR\game\shared,$SRCDIR\utils\luaplugin\src,$SRCDIR\utils\luaplugin\lua\src"
 		// TODO: we need to build lua with the source engine things
-		$PreprocessorDefinitions			"$BASE;GAME_DLL;_MBCS"
+		$PreprocessorDefinitions			"$BASE;luapluginONLY;_MBCS"
 	}
 }
 
@@ -37,6 +37,6 @@ $Project "luaplugin"
 	{
 		$Lib mathlib
 		$Lib tier2
-		$Lib liblua
+		$Lib lua54 // SIMPLE FUCKING FIX
 	}
 }
